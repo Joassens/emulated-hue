@@ -1,3 +1,5 @@
 black==23.3.0
 pre-commit==3.3.3
 ruff==0.0.280
+pytest==8.3.3
+pytest-aiohttp==1.0.5

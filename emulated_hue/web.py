@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from aiohttp import web
 
 from emulated_hue.apiv1 import HueApiV1Endpoints
+from emulated_hue.apiv2 import HueApiV2Endpoints
 from emulated_hue.controllers import Controller
 from emulated_hue.ssl_cert import async_generate_selfsigned_cert, check_certificate
 
@@ -29,6 +30,7 @@ class HueWeb:
         """Initialize with Hue object."""
         self.ctl: Controller = ctl
         self.v1_api = HueApiV1Endpoints(ctl)
+        self.v2_api = HueApiV2Endpoints(ctl)
         self.http_site: web.TCPSite | None = None
         self.https_site: web.TCPSite | None = None
 
@@ -37,6 +39,8 @@ class HueWeb:
         app = web.Application()
         # add all routes defined with decorator
         app.add_routes(self.v1_api.route)
+        app.add_routes(self.v2_api.get_routes())
+        await self.v2_api.async_setup()
         # static files hosting
         app.router.add_static("/", STATIC_DIR, append_version=True)
         self.runner = web.AppRunner(app, access_log=None)
@@ -89,6 +93,8 @@ class HueWeb:
 
     async def async_stop(self):
         """Stop the webserver."""
+        # close open eventstreams first, so the sites can stop
+        await self.v2_api.async_stop()
         await self.http_site.stop()
         await self.https_site.stop()
         await self.v1_api.async_stop()
