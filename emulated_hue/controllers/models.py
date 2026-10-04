@@ -15,6 +15,14 @@ else:
     Config = "Config"
 
 
+def model_field_names(model: type[BaseModel]) -> list[str]:
+    """Return the field names of a pydantic model (pydantic v1 and v2)."""
+    fields = getattr(model, "model_fields", None)
+    if fields is None:
+        fields = model.__fields__
+    return list(fields)
+
+
 @dataclass
 class Controller:
     """Dataclass to store controller instances."""
@@ -95,10 +103,10 @@ class EntityState(BaseModel):
             return EntityState()
 
         save_state = {}
-        for state in list(cls.model_fields):
+        for state in model_field_names(cls):
             if state in save_state:
                 save_state[state] = states[state]
         return EntityState(**save_state)
 
 
-ALL_STATES: list = list(EntityState.model_fields)
+ALL_STATES: list = model_field_names(EntityState)
