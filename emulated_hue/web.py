@@ -21,6 +21,23 @@ LOGGER = logging.getLogger(__name__)
 STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web_static")
 
 
+@web.middleware
+async def log_not_found(request: web.Request, handler):
+    """Log requests for unknown paths with their source (e.g. network scanners)."""
+    try:
+        response = await handler(request)
+    except web.HTTPNotFound:
+        LOGGER.debug(
+            "[%s] Not found: %s %s", request.remote, request.method, request.path
+        )
+        raise
+    if response.status == 404:
+        LOGGER.debug(
+            "[%s] Not found: %s %s", request.remote, request.method, request.path
+        )
+    return response
+
+
 class HueWeb:
     """Support for a Hue API to control Home Assistant."""
 
@@ -36,7 +53,7 @@ class HueWeb:
 
     async def async_setup(self):
         """Async set-up of the webserver."""
-        app = web.Application()
+        app = web.Application(middlewares=[log_not_found])
         # add all routes defined with decorator
         app.add_routes(self.v1_api.route)
         app.add_routes(self.v2_api.get_routes())

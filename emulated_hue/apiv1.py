@@ -582,9 +582,14 @@ class HueApiV1Endpoints:
         """Handle unknown requests (catch-all)."""
         request_data = await request.text()
         if request_data:
-            LOGGER.warning("Invalid/unknown request: %s --> %s", request, request_data)
+            LOGGER.warning(
+                "[%s] Invalid/unknown request: %s --> %s",
+                request.remote,
+                request,
+                request_data,
+            )
         else:
-            LOGGER.warning("Invalid/unknown request: %s", request)
+            LOGGER.warning("[%s] Invalid/unknown request: %s", request.remote, request)
         if request.method == "GET":
             address = request.path.lstrip("/").split("/")
             # Ensure a resource is requested
