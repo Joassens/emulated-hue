@@ -10,7 +10,7 @@ from emulated_hue import const
 from emulated_hue.const import ENTERTAINMENT_UPDATE_STATE_UPDATE_RATE
 from emulated_hue.utils import clamp
 
-from .models import ALL_STATES, Controller, EntityState
+from .models import ALL_STATES, Controller, EntityState, mired_to_kelvin
 
 LOGGER = logging.getLogger(__name__)
 
@@ -407,13 +407,22 @@ class CTDevice(BrightnessDevice):
     ) -> EntityState:
         """Update EntityState object."""
         existing_state = super()._update_device_state(existing_state)
-        existing_state.color_temp = self._hass_state_dict.get(const.HASS_ATTR, {}).get(
-            const.HASS_ATTR_COLOR_TEMP
+        existing_state.color_temp = self._attr_in_mired(
+            const.HASS_ATTR_COLOR_TEMP, const.HASS_ATTR_COLOR_TEMP_KELVIN
         )
         existing_state.color_mode = self._hass_state_dict.get(const.HASS_ATTR, {}).get(
             const.HASS_COLOR_MODE
         )
         return existing_state
+
+    def _attr_in_mired(self, mired_attr: str, kelvin_attr: str) -> int | None:
+        """Return a hass color temperature attribute in mired (newer HA only reports kelvin)."""
+        attributes = self._hass_state_dict.get(const.HASS_ATTR, {})
+        if (mired := attributes.get(mired_attr)) is not None:
+            return round(mired)
+        if kelvin := attributes.get(kelvin_attr):
+            return mired_to_kelvin(kelvin)
+        return None
 
     @property
     def color_mode(self) -> str:
@@ -422,13 +431,13 @@ class CTDevice(BrightnessDevice):
 
     @property
     def min_mireds(self) -> int | None:
-        """Return min_mireds from hass."""
-        return self._hass_state_dict.get(const.HASS_ATTR, {}).get("min_mireds")
+        """Return min_mireds from hass (the coldest color temperature)."""
+        return self._attr_in_mired("min_mireds", const.HASS_ATTR_MAX_COLOR_TEMP_KELVIN)
 
     @property
     def max_mireds(self) -> int | None:
-        """Return max_mireds from hass."""
-        return self._hass_state_dict.get(const.HASS_ATTR, {}).get("max_mireds")
+        """Return max_mireds from hass (the warmest color temperature)."""
+        return self._attr_in_mired("max_mireds", const.HASS_ATTR_MIN_COLOR_TEMP_KELVIN)
 
     @property
     def color_temp(self) -> int:

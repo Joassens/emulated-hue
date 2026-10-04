@@ -148,7 +148,7 @@ async def test_put_light(client, fake_hass):
     assert fake_hass.calls[-1] == (
         "turn_on",
         "light.living_color",
-        {"brightness": 255, "color_temp": 250, "transition": 1.0},
+        {"brightness": 255, "color_temp_kelvin": 4000, "transition": 1.0},
     )
 
 

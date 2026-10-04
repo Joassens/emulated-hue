@@ -12,6 +12,9 @@ DEFAULT_TRANSITION_SECONDS = 0.4
 
 HASS_ATTR_BRIGHTNESS = "brightness"
 HASS_ATTR_COLOR_TEMP = "color_temp"
+HASS_ATTR_COLOR_TEMP_KELVIN = "color_temp_kelvin"
+HASS_ATTR_MIN_COLOR_TEMP_KELVIN = "min_color_temp_kelvin"
+HASS_ATTR_MAX_COLOR_TEMP_KELVIN = "max_color_temp_kelvin"
 HASS_ATTR_XY_COLOR = "xy_color"
 HASS_ATTR_HS_COLOR = "hs_color"
 HASS_ATTR_RGB_COLOR = "rgb_color"

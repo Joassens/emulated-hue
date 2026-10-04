@@ -21,10 +21,11 @@ LIGHTS = {
             "color_mode": "xy",
             "brightness": 128,
             "xy_color": [0.3, 0.4],
-            "hs_color": [30, 50],
-            "color_temp": 300,
-            "min_mireds": 153,
-            "max_mireds": 500,
+            # recent Home Assistant: decimal hs_color, kelvin only
+            "hs_color": [28.439, 66.366],
+            "color_temp_kelvin": 3333,
+            "min_color_temp_kelvin": 2000,
+            "max_color_temp_kelvin": 6535,
         },
     },
     "light.kitchen_dimmer": {

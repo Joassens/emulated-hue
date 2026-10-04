@@ -15,6 +15,11 @@ else:
     Config = "Config"
 
 
+def mired_to_kelvin(mired: float) -> int:
+    """Convert a color temperature in mired to kelvin (and vice versa)."""
+    return round(1_000_000 / mired)
+
+
 def model_field_names(model: type[BaseModel]) -> list[str]:
     """Return the field names of a pydantic model (pydantic v1 and v2)."""
     fields = getattr(model, "model_fields", None)
@@ -42,7 +47,8 @@ class EntityState(BaseModel):
     transition_seconds: float | None = None
     brightness: int | None = None
     color_temp: int | None = None
-    hue_saturation: tuple[int, int] | None = None
+    # Home Assistant reports hs_color with decimals (e.g. [28.439, 66.366])
+    hue_saturation: tuple[float, float] | None = None
     xy_color: tuple[float, float] | None = None
     rgb_color: tuple[int, int, int] | None = None
     flash_state: str | None = None
@@ -85,6 +91,10 @@ class EntityState(BaseModel):
         color_mode_attribute = self._get_color_mode_attribute()
         if color_mode_attribute:
             color_mode, attribute = color_mode_attribute
+            if color_mode == const.HASS_ATTR_COLOR_TEMP and attribute:
+                # the mired based color_temp service attribute was removed from HA
+                color_mode = const.HASS_ATTR_COLOR_TEMP_KELVIN
+                attribute = mired_to_kelvin(attribute)
             data[color_mode] = attribute
 
         if self.effect:
